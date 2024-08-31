@@ -13,10 +13,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function createSudokuGrid(sudokuGrid, gridSize) {
-    // Clear the existing grid
     sudokuGrid.innerHTML = '';
 
-    // Create the sudoku grid and input cells
     for (let row = 0; row < gridSize; row++) {
         const newRow = document.createElement("tr");
         for (let col = 0; col < gridSize; col++) {
@@ -33,7 +31,6 @@ function createSudokuGrid(sudokuGrid, gridSize) {
 }
 
 function resetSudoku() {
-    // Terminate any ongoing process
     if (solveSudokuProcess) {
         solveSudokuProcess.abort();
         solveSudokuProcess = null;
@@ -50,7 +47,6 @@ function resetSudoku() {
 }
 
 async function solveSudoku() {
-    // Check if a solving process is already running
     if (solveSudokuProcess) {
         alert("A Sudoku solving process is already running. Please wait for it to finish.");
         return;
@@ -59,7 +55,6 @@ async function solveSudoku() {
     const gridSize = 9;
     const sudokuArray = [];
 
-    // Fill the sudokuArray with input values from the grid
     for (let row = 0; row < gridSize; row++) {
         sudokuArray[row] = [];
         for (let col = 0; col < gridSize; col++) {
@@ -68,8 +63,6 @@ async function solveSudoku() {
             sudokuArray[row][col] = cellValue !== "" ? parseInt(cellValue) : 0;
         }
     }
-
-    // Identify user-input cells and mark them
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
             const cellId = `cell-${row}-${col}`;
@@ -80,8 +73,6 @@ async function solveSudoku() {
             }
         }
     }
-
-    // Validate user input
     let isValid = true;
     for (let row = 0; row < gridSize; row++) {
         for (let col = 0; col < gridSize; col++) {
@@ -89,7 +80,6 @@ async function solveSudoku() {
             const cellValue = document.getElementById(cellId).value;
 
             if (cellValue !== "") {
-                // Temporarily remove the value to validate it in context
                 const tempValue = sudokuArray[row][col];
                 sudokuArray[row][col] = 0;
 
@@ -99,8 +89,6 @@ async function solveSudoku() {
                 } else {
                     document.getElementById(cellId).classList.remove("invalid-input");
                 }
-
-                // Restore the value after validation
                 sudokuArray[row][col] = tempValue;
             }
         }
@@ -110,8 +98,6 @@ async function solveSudoku() {
         alert("Invalid input. Please enter valid numbers (1-9) that follow the Sudoku rules.");
         return;
     }
-
-    // Solve the sudoku and display the solution
     solveSudokuProcess = new AbortController();
     const { signal } = solveSudokuProcess;
     try {
@@ -120,12 +106,10 @@ async function solveSudoku() {
                 for (let col = 0; col < gridSize; col++) {
                     const cellId = `cell-${row}-${col}`;
                     const cell = document.getElementById(cellId);
-
-                    // Fill in solved values and apply animation
                     if (!cell.classList.contains("user-input")) {
                         cell.value = sudokuArray[row][col];
                         cell.classList.add("solved");
-                        await sleep(30, signal); // Reduced the delay to 30ms
+                        await sleep(30, signal);
                     }
                 }
             }
@@ -160,26 +144,24 @@ async function solveSudokuHelper(board, row, col, signal) {
                         const cell = document.getElementById(cellId);
                         cell.value = num;
                         cell.classList.add("backtrack");
-                        await sleep(30, signal); // Reduced the delay to 30ms
-
-                        // Recursively attempt to solve the Sudoku
+                        await sleep(30, signal);
                         if (await solveSudokuHelper(board, row, col + 1, signal)) {
-                            return true; // Puzzle solved
+                            return true;
                         }
 
-                        board[row][col] = 0; // Backtrack
+                        board[row][col] = 0;
                         cell.value = "";
                         cell.classList.remove("backtrack");
-                        await sleep(30, signal); // Reduced the delay to 30ms
+                        await sleep(30, signal);
                     }
                 }
-                return false; // No valid number found
+                return false;
             }
         }
         col = 0;
     }
 
-    return true; // All cells filled
+    return true;
 }
 
 function isValidInput(value) {
@@ -189,26 +171,23 @@ function isValidInput(value) {
 function isValidMove(board, row, col, num) {
     const gridSize = 9;
 
-    // Check row and column for conflicts
     for (let i = 0; i < gridSize; i++) {
         if (board[row][i] === num || board[i][col] === num) {
-            return false; // Conflict found
+            return false;
         }
     }
-
-    // Check the 3*3 subgrid for conflicts
     const startRow = Math.floor(row / 3) * 3;
     const startCol = Math.floor(col / 3) * 3;
 
     for (let i = startRow; i < startRow + 3; i++) {
         for (let j = startCol; j < startCol + 3; j++) {
             if (board[i][j] === num) {
-                return false; // Conflict found
+                return false;
             }
         }
     }
 
-    return true; // No conflicts found
+    return true;
 }
 
 async function sleep(ms, signal) {
